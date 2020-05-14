@@ -9,6 +9,7 @@ namespace ThreadingTest
 {
     class Program
     {
+        private static bool _CanClockWork = true;
         static void Main(string[] args)
         {
             //ViewProcessInformation();
@@ -18,7 +19,21 @@ namespace ThreadingTest
 
             var clock_thread = new Thread(StartConsoleHeaderClock);
             clock_thread.IsBackground = true;
+            clock_thread.Name = "Поток милисекунд";
+            clock_thread.Priority = ThreadPriority.Normal;
+
+
             clock_thread.Start();
+            Console.WriteLine("Идентификатор потока часов: {0}", clock_thread.ManagedThreadId);
+
+            Console.ReadLine();
+            _CanClockWork = false;
+            if (clock_thread.Join(200))
+                clock_thread.Interrupt();
+            //clock_thread.Join();
+            //clock_thread.Interrupt();
+            //clock_thread.Abort(); аборт - это убийство процесса!
+
 
 
             Console.WriteLine("Главный поток завершен!");
@@ -28,11 +43,17 @@ namespace ThreadingTest
 
         private static void StartConsoleHeaderClock()
         {
-            while (true)
+            var thread = Thread.CurrentThread;
+            Console.WriteLine("Запущен поток: id:{0}, name:{1}, priority:{3}",
+                thread.ManagedThreadId, thread.Name, thread.Priority);
+
+            while (_CanClockWork)
             {
                 Console.Title = DateTime.Now.ToString("HH:mm:ss.ffff");
                 Thread.Sleep(100);
             }
+
+            Console.WriteLine("Поток часов завершен.");
         }
 
         private static void ProcessTextFiles()
